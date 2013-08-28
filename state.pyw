@@ -1,10 +1,10 @@
 # dissecting states
 from PyQt4 import QtCore, QtGui
 
-try:
-	import states_rc3
-except ImportError:
-	import states_rc2
+# try:
+# 	import states_rc3
+# except ImportError:
+# 	import states_rc2
 
 
 class Pixmap(QtGui.QGraphicsObject):
@@ -27,24 +27,20 @@ if __name__ == '__main__':
 	app = QtGui.QApplication(sys.argv)
 
 	# Text edit and button.
-	edit = QtGui.QTextEdit()
-	edit.setText("asdf lkjha yuoiqwe asd iuaysd u iasyd uiy "
-				 "asdf lkjha yuoiqwe asd iuaysd u iasyd uiy "
-				 "asdf lkjha yuoiqwe asd iuaysd u iasyd uiy "
-				 "asdf lkjha yuoiqwe asd iuaysd u iasyd uiy!")
+
 
 	button = QtGui.QPushButton()
 	buttonProxy = QtGui.QGraphicsProxyWidget()
 	buttonProxy.setWidget(button)
-	editProxy = QtGui.QGraphicsProxyWidget()
-	editProxy.setWidget(edit)
 
 	box = QtGui.QGroupBox()
+	box.setStyleSheet("QGroupBox {border: none; background-color: rgba(10%, 10%, 10%, 50%);}")
 	box.setFlat(True)
 	box.setTitle("Options")
 
 	layout2 = QtGui.QVBoxLayout()
 	box.setLayout(layout2)
+	layout2.addWidget(QtGui.QLabel("AppleBee's"))
 	layout2.addWidget(QtGui.QRadioButton("Herring"))
 	layout2.addWidget(QtGui.QRadioButton("Blue Parrot"))
 	layout2.addWidget(QtGui.QRadioButton("Petunias"))
@@ -56,7 +52,6 @@ if __name__ == '__main__':
 	# Parent widget.
 	widget = QtGui.QGraphicsWidget()
 	layout = QtGui.QGraphicsLinearLayout(QtCore.Qt.Vertical, widget)
-	layout.addItem(editProxy)
 	layout.addItem(buttonProxy)
 	widget.setLayout(layout)
 
@@ -73,19 +68,21 @@ if __name__ == '__main__':
 
 	# State 1.
 	state1.assignProperty(button, 'text', "Switch to state 2")
-	state1.assignProperty(widget, 'geometry', QtCore.QRectF(0, 0, 400, 150))
-	state1.assignProperty(box, 'geometry', QtCore.QRect(-200, 150, 200, 150))
-	state1.assignProperty(boxProxy, 'opacity', 0.0)
+	state1.assignProperty(widget, 'geometry', QtCore.QRectF(0, 250, 400, 150))
+	state1.assignProperty(box, 'geometry', QtCore.QRect(0, 0, 250, 250))
+	# state1.assignProperty(boxProxy, 'opacity', 0.0)
+
 	# State 2.
 	state2.assignProperty(button, 'text', "Switch to state 3")
-	state2.assignProperty(widget, 'geometry', QtCore.QRectF(200, 150, 200, 150))
-	state2.assignProperty(box, 'geometry', QtCore.QRect(-200, 150, 200-190, 150))
-	state2.assignProperty(boxProxy, 'opacity', 1.0)
+	state2.assignProperty(widget, 'geometry', QtCore.QRectF(0, 250, 400, 150))
+	state2.assignProperty(box, 'geometry', QtCore.QRect(0, 0, 250-450, 250))
+	# state2.assignProperty(boxProxy, 'opacity', 1.0)
+
 	# State 3.
 	state3.assignProperty(button, 'text', "Switch to state 1")
-	state3.assignProperty(widget, 'geometry', QtCore.QRectF(138, 5, 400 - 138, 200))
-	state3.assignProperty(box, 'geometry', QtCore.QRect(-200, 150, 400, 90))
-	state3.assignProperty(boxProxy, 'opacity', 1.0)
+	state3.assignProperty(widget, 'geometry', QtCore.QRectF(0, 250, 400, 150))
+	state3.assignProperty(box, 'geometry', QtCore.QRect(0, 0, 450-250, 250))
+	# state3.assignProperty(boxProxy, 'opacity', 1.0)
 
 
 	t1 = state1.addTransition(button.clicked, state2)
@@ -97,13 +94,13 @@ if __name__ == '__main__':
 
 
 	t2 = state2.addTransition(button.clicked, state3)
-	t2.addAnimation(QtCore.QPropertyAnimation(box, 'geometry', state2))
-	t2.addAnimation(QtCore.QPropertyAnimation(widget, 'geometry', state2))
-
+	t2.addAnimation(QtCore.QPropertyAnimation(box, 'geometry', state3))
+	t2.addAnimation(QtCore.QPropertyAnimation(widget, 'geometry', state3))
 
 	t3 = state3.addTransition(button.clicked, state1)
-	t3.addAnimation(QtCore.QPropertyAnimation(box, 'geometry', state3))
-	t3.addAnimation(QtCore.QPropertyAnimation(widget, 'geometry', state3))
+	t3.addAnimation(QtCore.QPropertyAnimation(box, 'geometry', state1))
+	t3.addAnimation(QtCore.QPropertyAnimation(widget, 'geometry', state1))
+
 
 
 	machine.start()
