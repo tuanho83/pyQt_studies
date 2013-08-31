@@ -37,7 +37,6 @@ if __name__ == '__main__':
 
 
 	#QGraphics Scene
-
 	scene = QtGui.QGraphicsScene(0, 0, 400, 300)
 	scene.setBackgroundBrush(scene.palette().window())
 	scene.addItem(widget)
@@ -85,7 +84,6 @@ if __name__ == '__main__':
 	view = QtGui.QGraphicsView(scene)
 	centerLayout = QtGui.QVBoxLayout()
 	centerLayout.addWidget(view)
-
 
 	gb = QtGui.QGroupBox()
 	gb.setLayout(centerLayout)
