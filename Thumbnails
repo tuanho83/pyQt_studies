@@ -1,0 +1,128 @@
+from PyQt4 import QtCore, QtGui
+# from pipeline_commons import *
+import re
+class Ui_makeSnapShot(QtGui.QWidget):
+	UPDATE_SSS_SIGNAL = QtCore.pyqtSignal()
+
+	def __init__(self,frameX = 512,frameY =512,parent=None, ):
+		super(Ui_makeSnapShot, self).__init__(parent)
+
+		self.setWindowTitle("Softimage Warehouse Pipeline")
+		self.setAttribute(QtCore.Qt.WA_NoSystemBackground)	
+		self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
+		self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)	
+		self.screen = QtGui.QDesktopWidget().screenGeometry()
+		self.frameX = frameX
+		self.frameY = frameY
+
+		self.label = Ext_Label()
+		self.label.setMinimumSize(QtCore.QSize(self.frameX/2, self.frameY/2))
+		self.label.setMaximumSize(QtCore.QSize(self.frameX, self.frameY))
+		self.label.setStyleSheet("background-color: rgba(0, 0, 50, 20%);")
+		self.label.rightClicked.connect(self.menu)
+
+		self.container = QtGui.QHBoxLayout()
+		self.container.setSpacing(0)
+		self.container.setMargin(0)
+		self.container.addWidget(self.label)
+		self.setLayout(self.container)
+		self.setGeometry(0,0,self.frameX,self.frameY)
+		self.centerOnScreen()
+
+	def mousePressEvent(self, event):
+		self.offset = event.pos()
+
+	def mouseMoveEvent(self, event):
+		x=event.globalX()
+		y=event.globalY()
+		x_offset = self.offset.x()
+		y_offset = self.offset.y()
+
+		offsetX = x - x_offset
+		offsetY = y - y_offset
+		# print 'startX %s - %s toX %s' % (x, x_offset,	offsetX)
+		# print 'startY %s - %s toY %s' % (y, y_offset,	offsetY)
+
+		self.move(offsetX, offsetY)
+
+	def quit(self):
+		self.close()
+
+	def capture(self):
+		# print 'viewable computer screen resolution is: %s' % self.screen
+		# print self.label.size()
+		label_pos = self.label.mapToGlobal(self.label.pos())	
+		# print label_pos.y()
+		# print label_pos.x()
+		# label_size = self.label.size()
+		# print 'label global position x:%s  y: %s' % (label_pos.x(),label_pos.y())
+		# print 'label size: %s ' % label_size
+
+		self.origScreenShot = None
+		self.origScreenShot = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId())
+		self.cropPixmap = self.origScreenShot.copy(label_pos.x(), label_pos.y(), self.frameX, self.frameY)
+		currTime = QtCore.QDateTime().currentDateTime().toString()
+		# ctFormat =  re.sub('[^A-Za-z0-9]+', '_', str(currTime))
+		ctFormat =  str(currTime).replace(':','-')
+		ctFormat2 =ctFormat.replace(' ','_')
+		filepath = 'c:/temp/thumb_%s.png' % ctFormat2
+		print filepath
+		self.cropPixmap.save(filepath, None,100)
+		self.show()
+		print "captured"
+
+	def printscreen(self):
+		print 'printing screen'
+		self.hide()
+		# milliseconds
+		QtCore.QTimer.singleShot(.25 * 1000, self.capture)
+
+	def review(self):
+		self.label.setStyleSheet("background-color: rgba(124, 0, 0, 90%);")
+
+	def menu(self):
+		menu = QtGui.QMenu("Menu", self)
+
+		snap =  menu.addAction("snapshot")
+		snap.triggered.connect(self.printscreen)
+
+		review =  menu.addAction("review")
+		review.triggered.connect(self.review)
+
+		explore = menu.addAction("exit")
+		explore.triggered.connect(self.quit)
+		menu.exec_(QtGui.QCursor.pos())
+
+	def centerOnScreen(self):
+		'''Centers the window on the screen.'''
+		resolution = QtGui.QDesktopWidget().availableGeometry()
+		geo = self.frameGeometry()
+		# need to specifiy self.resize in order for this to work properly
+		print 'screen resolution: %s  widget geometry: %s' % (resolution,geo)
+		self.move((resolution.width() / 2) - (self.frameSize().width() / 2),
+			(resolution.height() / 2) - (self.frameSize().height() / 2))
+
+class Ext_Label(QtGui.QLabel):
+	rightClicked = QtCore.pyqtSignal()
+	def __init__(self, parent=None):
+		QtGui.QLabel.__init__(self, parent)
+		self.setMouseTracking(True)
+		self.g1 = QtGui.QSizeGrip(self)
+	def mousePressEvent(self, event):
+		self.__mousePressPos = None
+		self.__mouseMovePos = None
+		if event.button() == QtCore.Qt.LeftButton:
+			self.__mousePressPos = event.globalPos()
+			self.__mouseMovePos = event.globalPos()
+		if event.button() == QtCore.Qt.RightButton:
+			self.rightClicked.emit()
+		super(Ext_Label, self).mousePressEvent(event)
+
+
+if __name__ == '__main__':
+	import sys
+	app = QtGui.QApplication(sys.argv)
+	# QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('WindowsVista'))
+	appWidget = Ui_makeSnapShot(420,420)
+	appWidget.show()
+	sys.exit(app.exec_())
